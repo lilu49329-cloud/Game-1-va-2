@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 export default class EndGameScene extends Phaser.Scene {
-	private bgm?: Phaser.Sound.BaseSound;
+	//private bgm?: Phaser.Sound.BaseSound;
 	constructor() {
 		super({ key: 'EndGameScene' });
 	}
@@ -20,7 +20,7 @@ export default class EndGameScene extends Phaser.Scene {
 		} else if (!bgm.isPlaying) {
 			bgm.play();
 		}
-		this.bgm = bgm;
+		//this.bgm = bgm;
 		if (this.sound && this.sound.play) {
 			this.sound.play('voice_end', { volume: 1 });
 		}

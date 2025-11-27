@@ -55,9 +55,9 @@ const HOLE_OFFSET_Y_RIGHT_RATIO = 0.494;
 const HOLE_RADIUS_RATIO = (32 / 2) / 225;
 
 // Hai hằng dưới giữ lại nếu cần xài lại logic cũ
-const HOLE_ALONG_FACTOR = 0.85;
+//const HOLE_ALONG_FACTOR = 0.85;
 const LINE_THICKNESS_FACTOR = 0.55;
-const LINE_TRIM_FACTOR = 0.12;
+//const LINE_TRIM_FACTOR = 0.12;
 
 // Độ lệch lỗ theo đường chéo (chưa dùng, để 0)
 const HOLE_SLOPE_OFFSET_RATIO = 0.0;
@@ -370,7 +370,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // ===== CHARACTER (desktop layout) =====
-    const charW = 364;
+    //const charW = 364;
     let scaleChar: number;
     let charX: number;
     const charY = height - 10;
@@ -461,7 +461,7 @@ export default class GameScene extends Phaser.Scene {
     this.numbers = [];
     this.objects = [];
 
-    const cardScale = 0.85;
+    //const cardScale = 0.85;
     const cardGap = 20 * scaleBoard;
     // Card gốc: 685x249, scale theo board
     const cardW = 685 * scaleBoard;
