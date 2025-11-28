@@ -42,10 +42,6 @@ export function preloadGameAssets(scene: Phaser.Scene): void {
   scene.load.image("bg1", "assets/bg/bg1.webp");
   scene.load.image("bg2", "assets/bg/bg2.webp");
   scene.load.image("bg3", "assets/bg/bg3.webp");
-  scene.load.image("bg4", "assets/bg/bg4.webp");
-  scene.load.image("bg5", "assets/bg/bg5.webp");
-  scene.load.image("bg6", "assets/bg/bg6.webp");
-  scene.load.image("bg7", "assets/bg/bg7.webp");
 
   // --- CHARACTERS ---
   scene.load.image("char1", "assets/char/char1.webp");
