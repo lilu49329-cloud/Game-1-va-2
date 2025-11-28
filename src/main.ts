@@ -30,10 +30,6 @@ const INTRO_VIEWPORT_BGS = [
   "assets/intro/bge1.webp",
   "assets/intro/bge2.webp",
   "assets/intro/bge3.webp",
-  "assets/intro/bge4.webp",
-  "assets/intro/bge5.webp",
-  "assets/intro/bge6.webp",
-  "assets/intro/bge7.webp",
 ];
 
 const GAME_VIEWPORT_BGS = [
@@ -51,36 +47,49 @@ const END_VIEWPORT_BGS = [
   "assets/bg/bg2.webp",
 ];
 
-function setViewportBg(url: string) {
+// Cho phép chỉnh vị trí BG (center / top...)
+function setViewportBg(url: string, position: string = "center center") {
   document.body.style.backgroundImage = `url("${url}")`;
   document.body.style.backgroundRepeat = "no-repeat";
   document.body.style.backgroundSize = "cover";
-  document.body.style.backgroundPosition = "center";
+  document.body.style.backgroundPosition = position;
   document.body.style.boxSizing = "border-box";
 }
 
 export function setRandomIntroViewportBg() {
   const url =
     INTRO_VIEWPORT_BGS[Math.floor(Math.random() * INTRO_VIEWPORT_BGS.length)];
-  setViewportBg(url);
+
+  const isLandscape = window.innerWidth > window.innerHeight;
+
+  // Landscape: ưu tiên giữ phần trên (title), cắt nhiều phía dưới
+  if (isLandscape) {
+    setViewportBg(url, "center top");
+  } else {
+    setViewportBg(url, "center center");
+  }
 }
 
 export function setRandomGameViewportBg() {
   const url =
     GAME_VIEWPORT_BGS[Math.floor(Math.random() * GAME_VIEWPORT_BGS.length)];
-  setViewportBg(url);
+  setViewportBg(url, "center center");
 }
 
 export function setRandomEndViewportBg() {
   const url =
     END_VIEWPORT_BGS[Math.floor(Math.random() * END_VIEWPORT_BGS.length)];
-  setViewportBg(url);
+  setViewportBg(url, "center center");
 }
 
 // ========== HIỆN / ẨN NÚT VIEWPORT ==========
 function setGameButtonsVisible(visible: boolean) {
-  const replayBtn = document.getElementById("btn-replay") as HTMLButtonElement | null;
-  const nextBtn = document.getElementById("btn-next") as HTMLButtonElement | null;
+  const replayBtn = document.getElementById("btn-replay") as
+    | HTMLButtonElement
+    | null;
+  const nextBtn = document.getElementById("btn-next") as
+    | HTMLButtonElement
+    | null;
   const display = visible ? "block" : "none";
   if (replayBtn) replayBtn.style.display = display;
   if (nextBtn) nextBtn.style.display = display;
@@ -105,35 +114,101 @@ if (container instanceof HTMLDivElement) {
   container.style.alignItems = "center";
   container.style.overflow = "hidden";
   container.style.boxSizing = "border-box";
-
-  // rất quan trọng: container không có background, để lộ background của body
   container.style.background = "transparent";
 }
 
 // Giữ tham chiếu game để tránh tạo nhiều lần (HMR, reload…)
 let game: Phaser.Game | null = null;
+// ================== OVERLAY NHẮC XOAY NGANG ==================
+let rotateOverlay: HTMLDivElement | null = null;
+
+function ensureRotateOverlay() {
+  if (rotateOverlay) return;
+
+  rotateOverlay = document.createElement("div");
+  rotateOverlay.id = "rotate-overlay";
+  rotateOverlay.style.position = "fixed";
+  rotateOverlay.style.inset = "0";
+  rotateOverlay.style.zIndex = "9999";
+  rotateOverlay.style.display = "none";
+  rotateOverlay.style.alignItems = "center";
+  rotateOverlay.style.justifyContent = "center";
+  rotateOverlay.style.textAlign = "center";
+  rotateOverlay.style.background = "rgba(0, 0, 0, 0.6)";
+  rotateOverlay.style.padding = "16px";
+  rotateOverlay.style.boxSizing = "border-box";
+
+  // Nội dung thông báo
+  const box = document.createElement("div");
+  box.style.background = "white";
+  box.style.borderRadius = "16px";
+  box.style.padding = "16px 20px";
+  box.style.maxWidth = "320px";
+  box.style.margin = "0 auto";
+  box.style.fontFamily = '"Fredoka", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+  box.style.boxShadow = "0 8px 24px rgba(0,0,0,0.25)";
+
+  const title = document.createElement("div");
+  title.textContent = "Hãy xoay ngang màn hình nhé 🌈";
+  title.style.fontSize = "18px";
+  title.style.fontWeight = "700";
+  title.style.marginBottom = "8px";
+  title.style.color = "#222";
+
+  const desc = document.createElement("div");
+  desc.textContent = "Để chơi game rõ và dễ thao tác hơn, vui lòng xoay ngang thiết bị.";
+  desc.style.fontSize = "14px";
+  desc.style.lineHeight = "1.4";
+  desc.style.color = "#444";
+
+  box.appendChild(title);
+  box.appendChild(desc);
+  rotateOverlay.appendChild(box);
+
+  document.body.appendChild(rotateOverlay);
+}
+
+function updateRotateHint() {
+  ensureRotateOverlay();
+
+  if (!rotateOverlay) return;
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  // Điều kiện hiển thị:
+  // - Thiết bị đang ở portrait (đứng)
+  // - Và chiều rộng nhỏ hơn 768px (chủ yếu mobile / tablet nhỏ)
+  const shouldShow = h > w && w < 768;
+
+  rotateOverlay.style.display = shouldShow ? "flex" : "none";
+}
+function setupRotateHint() {
+  // Tạo overlay nếu chưa có
+  ensureRotateOverlay();
+  // Cập nhật trạng thái ngay lần đầu
+  updateRotateHint();
+
+  // Lắng nghe thay đổi kích thước / xoay
+  window.addEventListener("resize", updateRotateHint);
+  window.addEventListener("orientationchange", updateRotateHint as any);
+}
 
 // ================== CẤU HÌNH PHASER ==================
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   width: 1280,
   height: 720, // 16:9
-
   parent: containerId,
-
-  // Canvas trong suốt để nhìn thấy background của body
-  transparent: true,
-
+  transparent: true, // Canvas trong suốt để nhìn thấy background của body
   scale: {
-    mode: Phaser.Scale.FIT, // Canvas tự fit vào container
+    mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-
   render: {
     pixelArt: false,
     antialias: true,
   },
-
   scene: [OverlayScene, GameScene, EndGameScene],
 };
 
@@ -188,7 +263,6 @@ function waitForFredoka(): Promise<void> {
       }
     });
 
-    // Timeout ngắn để không chờ quá lâu
     setTimeout(() => {
       if (!done) {
         done = true;
@@ -196,6 +270,22 @@ function waitForFredoka(): Promise<void> {
       }
     }, 10);
   });
+}
+
+// ================== HANDLE RESIZE / ORIENTATION ==================
+function setupPhaserResize(currentGame: Phaser.Game) {
+  const refresh = () => {
+    // Cho browser ổn định layout rồi mới đo lại
+    setTimeout(() => {
+      currentGame.scale.refresh();
+    }, 50);
+  };
+
+  window.addEventListener("resize", refresh);
+  window.addEventListener("orientationchange", refresh as any);
+
+  // Gọi 1 lần ban đầu
+  refresh();
 }
 
 // ================== KHỞI TẠO GAME ==================
@@ -206,15 +296,14 @@ async function initGame() {
     console.warn("Không load kịp font Fredoka, chạy game luôn.");
   }
 
-  // Tránh tạo game nhiều lần
   if (!game) {
-    // Lần đầu vào, set bg cho intro
     setRandomIntroViewportBg();
     game = new Phaser.Game(config);
-    setupHtmlButtons(); // gắn listener cho nút HTML sau khi game tồn tại
+    setupHtmlButtons();
+    setupPhaserResize(game);
+    setupRotateHint(); 
   }
 
-  // Tối ưu canvas hiển thị sau khi Phaser tạo xong
   setTimeout(() => {
     const canvas =
       document.querySelector<HTMLCanvasElement>("#game-container canvas");

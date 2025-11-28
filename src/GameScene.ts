@@ -293,6 +293,8 @@ export default class GameScene extends Phaser.Scene {
     const cam = this.cameras.main;
     const width = cam.width;
     const height = cam.height;
+        // Hiện nút viewport ở màn game
+    (window as any).setGameButtonsVisible?.(true);
 
     this.input.setDefaultCursor("default");
 

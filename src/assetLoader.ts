@@ -21,9 +21,15 @@ export function preloadIntroAssets(scene: Phaser.Scene): void {
   scene.load.image("intro_bg_6", "assets/intro/bge6.webp");
   scene.load.image("intro_bg_7", "assets/intro/bge7.webp");
 
+  // CHARACTER & TITLE intro – rất quan trọng
+  scene.load.image("intro_char_1", "assets/intro/char_intro1.webp");
+  scene.load.image("intro_char_2", "assets/intro/char_intro2.webp");
+  scene.load.image("intro_title", "assets/intro/title.webp");
+
   // Nút start
   scene.load.image("btn_start", "assets/button/btn_start.webp");
 }
+
 
 // Load toàn bộ asset dùng trong game (GameScene + EndGameScene)
 export function preloadGameAssets(scene: Phaser.Scene): void {
@@ -48,6 +54,10 @@ export function preloadGameAssets(scene: Phaser.Scene): void {
   // --- CHARACTERS ---
   scene.load.image("char1", "assets/char/char1.webp");
   scene.load.image("char2", "assets/char/char2.webp");
+  // dùng lại cho OverlayScene nếu quay lại intro
+  scene.load.image("intro_char_1", "assets/intro/char_intro1.webp");
+  scene.load.image("intro_char_2", "assets/intro/char_intro2.webp");
+  scene.load.image("intro_title", "assets/intro/title.webp");
 
   // --- BUTTONS ---
   scene.load.image("btn_start", "assets/button/btn_start.webp");
@@ -90,9 +100,6 @@ export function preloadGameAssets(scene: Phaser.Scene): void {
   scene.load.image("intro_bg_5", "assets/intro/bge5.webp");
   scene.load.image("intro_bg_6", "assets/intro/bge6.webp");
   scene.load.image("intro_bg_7", "assets/intro/bge7.webp");
-  scene.load.image("intro_char_1", "assets/intro/char_intro1.webp");
-  scene.load.image("intro_char_2", "assets/intro/char_intro2.webp");
-  scene.load.image("intro_title", "assets/intro/title.webp");
 }
 
 // Giữ hàm cũ cho tương thích, nếu đâu đó vẫn gọi preloadAssets

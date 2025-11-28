@@ -5,7 +5,7 @@ import Phaser from "phaser";
 export default class OverlayScene extends Phaser.Scene {
   bgm?: Phaser.Sound.BaseSound;
   _started?: boolean;
-  private gameAssetsReady = false; // theo dõi đã load asset game chưa
+  private gameAssetsReady = false;
 
   constructor() {
     super({ key: "OverlayScene" });
@@ -17,32 +17,33 @@ export default class OverlayScene extends Phaser.Scene {
     const height = cam.height;
 
     console.log("🟦 PRELOAD start – screen:", width, height);
-
-    // KHÔNG setBackgroundColor để canvas giữ trong suốt
-    // cam.setBackgroundColor("#e5f5ff");
-
-    // Chỉ load asset intro, KHÔNG tạo thanh loading nữa
     preloadIntroAssets(this);
   }
 
   create(): void {
-    // Random background viewport (ngoài canvas) cho màn intro
     (window as any).setRandomIntroViewportBg?.();
 
     const width = this.scale.width;
     const height = this.scale.height;
 
-    // Dùng chung cho UI + character
     const DESIGN_W = 2160;
     const DESIGN_H = 1620;
     const uiScale = Math.min(width / DESIGN_W, height / DESIGN_H);
     console.log("UI scale:", uiScale);
 
     console.log("🟦 CREATE start – screen:", width, height);
-    console.log("Texture check btn_start:", this.textures.exists("btn_start"));
+    console.log("Texture check:", {
+      btn_start: this.textures.exists("btn_start"),
+      intro_char_1: this.textures.exists("intro_char_1"),
+      intro_char_2: this.textures.exists("intro_char_2"),
+      intro_title: this.textures.exists("intro_title"),
+    });
 
-    // ========== KHÔNG VẼ BACKGROUND TRONG CANVAS ==========
-    // Không còn bgIntro phủ kín canvas nữa.
+    // ===== SCALE CHO TỪNG THÀNH PHẦN (để cân bố cục) =====
+    const CHAR_SCALE = uiScale * 1;       // nhân vật to hơn chút
+    const TITLE_SCALE = uiScale * 1.15;     // title rõ hơn
+    const BTN_SCALE = uiScale * 1.7;        // nút bắt đầu to, dễ bấm
+    const BTN_SCALE_HOVER = BTN_SCALE * 1.08;
 
     // ========== CHARACTER – RANDOM 2 SPRITES ==========
     const charKeys = ["intro_char_1", "intro_char_2"];
@@ -52,17 +53,27 @@ export default class OverlayScene extends Phaser.Scene {
     this.add
       .image(width * 0.5, height * 0.93, chosenChar)
       .setOrigin(0.5, 1)
-      .setScale(uiScale * 1.2)
-      .setDepth(-998)
+      .setScale(CHAR_SCALE)
+      .setDepth(1)
       .setScrollFactor(0);
 
     // ========== TITLE TÁCH RIÊNG ==========
-    this.add
-      .image(width * 0.5, height * 0.18, "intro_title")
-      .setOrigin(0.5, 0.5)
-      .setScale(uiScale)
-      .setDepth(-997)
+    const title = this.add
+      .image(width * 0.5, height * 0.03, "intro_title") // hạ xuống một chút
+      .setOrigin(0.5, 0)
+      .setScale(TITLE_SCALE)
+      .setDepth(1)
       .setScrollFactor(0);
+
+    console.log("TITLE geom:", {
+      texKey: title.texture.key,
+      w: title.width,
+      h: title.height,
+      displayW: title.displayWidth,
+      displayH: title.displayHeight,
+      x: title.x,
+      y: title.y,
+    });
 
     // ========== PRELOAD GAME ASSETS NGẦM ==========
     this.load.reset();
@@ -106,8 +117,8 @@ export default class OverlayScene extends Phaser.Scene {
     const startButton = this.add
       .image(width / 2, startY, "btn_start")
       .setOrigin(0.5)
-      .setScale(uiScale * 1.25)
-      .setDepth(999)
+      .setScale(BTN_SCALE)
+      .setDepth(2)
       .setInteractive({ useHandCursor: true });
 
     console.log("Button created:", {
@@ -121,11 +132,11 @@ export default class OverlayScene extends Phaser.Scene {
     startButton.on("pointerdown", startGame);
 
     startButton.on("pointerover", () => {
-      startButton.setScale(uiScale * 1.33);
+      startButton.setScale(BTN_SCALE_HOVER);
     });
 
     startButton.on("pointerout", () => {
-      startButton.setScale(uiScale * 1.25);
+      startButton.setScale(BTN_SCALE);
     });
   }
 }
