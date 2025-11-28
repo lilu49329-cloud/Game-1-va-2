@@ -1,5 +1,11 @@
 import Phaser from "phaser";
 
+// Các URL gốc cho nút UI – dùng chung cho preload và HTML button
+export const BUTTON_ASSET_URLS = {
+  replay_svg: "assets/button/replay.png",
+  next_svg: "assets/button/next.png",
+};
+
 // Chỉ load những asset cần cho màn intro
 export function preloadIntroAssets(scene: Phaser.Scene): void {
   // AUDIO: chỉ cần nhạc nền + voice_intro
@@ -46,8 +52,8 @@ export function preloadGameAssets(scene: Phaser.Scene): void {
   // --- BUTTONS ---
   scene.load.image("btn_start", "assets/button/btn_start.webp");
   scene.load.image("replay_endgame", "assets/button/replay_endgame.webp");
-  scene.load.image("replay_svg", "assets/button/replay.png");
-  scene.load.image("next_svg", "assets/button/next.png");
+  scene.load.image("replay_svg", BUTTON_ASSET_URLS.replay_svg);
+  scene.load.image("next_svg", BUTTON_ASSET_URLS.next_svg);
   scene.load.image("exit_endgame", "assets/button/exit.webp");
 
   // --- CARDS ---
@@ -84,6 +90,9 @@ export function preloadGameAssets(scene: Phaser.Scene): void {
   scene.load.image("intro_bg_5", "assets/intro/bge5.webp");
   scene.load.image("intro_bg_6", "assets/intro/bge6.webp");
   scene.load.image("intro_bg_7", "assets/intro/bge7.webp");
+  scene.load.image("intro_char_1", "assets/intro/char_intro1.webp");
+  scene.load.image("intro_char_2", "assets/intro/char_intro2.webp");
+  scene.load.image("intro_title", "assets/intro/title.webp");
 }
 
 // Giữ hàm cũ cho tương thích, nếu đâu đó vẫn gọi preloadAssets

@@ -1,7 +1,7 @@
 // GameScene.ts – TypeScript, giữ nguyên logic từ bản JS
 
 import Phaser from "phaser";
-import { preloadGameAssets } from "./assetLoader";
+import { preloadGameAssets, BUTTON_ASSET_URLS } from "./assetLoader";
 
 // ========== TYPES ==========
 interface CardData {
@@ -54,7 +54,6 @@ const HOLE_OFFSET_Y_RIGHT_RATIO = 0.494;
 // Bán kính lỗ = tỉ lệ theo chiều cao card gốc (225px, lỗ 32px)
 const HOLE_RADIUS_RATIO = (32 / 2) / 225;
 
-// Hai hằng dưới giữ lại nếu cần xài lại logic cũ
 //const HOLE_ALONG_FACTOR = 0.85;
 const LINE_THICKNESS_FACTOR = 0.55;
 //const LINE_TRIM_FACTOR = 0.12;
@@ -224,8 +223,6 @@ export default class GameScene extends Phaser.Scene {
     rStart: number,
     rEnd: number,
     thicknessFactor = LINE_THICKNESS_FACTOR,
-    // innerFactor < 1 để line ăn sâu hơn vào trong lỗ.
-    // 0.8 cho cảm giác chạm sát mép hơn, đặc biệt ở đường chéo.
     innerFactor = 0.8
   ): LineSegment {
     const dx = end.x - start.x;
@@ -247,7 +244,6 @@ export default class GameScene extends Phaser.Scene {
   }
 
   drawAllLines() {
-    // Xoá các line cũ
     this.permanentLines.forEach((l) => l.destroy());
     this.permanentLines = [];
 
@@ -312,6 +308,24 @@ export default class GameScene extends Phaser.Scene {
 
     const level = this.levels[this.level];
 
+    // Random background viewport cho màn game (ngoài canvas)
+    (window as any).setRandomGameViewportBg?.();
+
+    // ===== GÁN ASSET PRELOAD CHO NÚT VIEWPORT =====
+    const replayBtnEl = document.getElementById("btn-replay") as HTMLButtonElement | null;
+    const nextBtnEl = document.getElementById("btn-next") as HTMLButtonElement | null;
+
+    const setBtnBgFromUrl = (el: HTMLButtonElement | null, url: string | undefined) => {
+      if (!el || !url) return;
+      el.style.backgroundImage = `url("${url}")`;
+      el.style.backgroundRepeat = "no-repeat";
+      el.style.backgroundPosition = "center";
+      el.style.backgroundSize = "contain";
+    };
+
+    setBtnBgFromUrl(replayBtnEl, BUTTON_ASSET_URLS.replay_svg);
+    setBtnBgFromUrl(nextBtnEl, BUTTON_ASSET_URLS.next_svg);
+
     const ensureNearest = (key: string | undefined) => {
       if (!key) return;
       if (this.textures.exists(key)) {
@@ -324,58 +338,16 @@ export default class GameScene extends Phaser.Scene {
       ensureNearest(level.character);
     }
 
-    // Chỉ giữ NEAREST cho line_glow để đường nối sắc nét,
-    // còn lại (card, icon, nút...) dùng filter mặc định (LINEAR)
-    // để illustration không bị "vỡ pixel".
     ["line_glow"].forEach((key) => ensureNearest(key));
 
-    // ===== BACKGROUND =====
     let scaleBG = 1;
-    const bgW = 2160;
-    const bgH = 1620;
+    this.scaleBG = 1;
 
-    if (level && level.background && this.textures.exists(level.background)) {
-      // Giữ đúng tỉ lệ gốc, không kéo 4:3 thành 16:9
-      scaleBG = Math.max(width / bgW, height / bgH);
-      this.scaleBG = scaleBG;
-
-      const bg = this.add
-        .image(width / 2, height / 2, level.background)
-        .setOrigin(0.5)
-        .setScale(scaleBG);
-      // Debug thông tin ảnh nền
-      const bgFrame = bg.texture.getSourceImage();
-      const bgOrigW = bgFrame.width || bg.texture.get().width;
-      const bgOrigH = bgFrame.height || bg.texture.get().height;
-      console.log(
-        "BG texture:",
-        bg.texture.key,
-        "goc:",
-        bgOrigW,
-        bgOrigH,
-        "size:",
-        bg.width,
-        bg.height,
-        "displaySize:",
-        bg.displayWidth,
-        bg.displayHeight,
-        "scale:",
-        bg.scaleX,
-        bg.scaleY
-      );
-    } else {
-      this.scaleBG = 1;
-      scaleBG = 1;
-      this.cameras.main.setBackgroundColor("#000");
-    }
-
-    // ===== CHARACTER (desktop layout) =====
-    //const charW = 364;
+    // ===== CHARACTER =====
     let scaleChar: number;
     let charX: number;
     const charY = height - 10;
 
-    // Desktop: nhân vật gọn, lệch trái vừa phải 
     const baseCharScale = height / 720;
     scaleChar = baseCharScale * 0.65;
     charX = width * 0.11;
@@ -385,7 +357,6 @@ export default class GameScene extends Phaser.Scene {
         .image(charX, charY, level.character)
         .setOrigin(0.5, 1)
         .setScale(scaleChar);
-      // Debug thông tin ảnh nhân vật
       const charFrame = charImg.texture.getSourceImage();
       const charOrigW = charFrame.width || charImg.texture.get().width;
       const charOrigH = charFrame.height || charImg.texture.get().height;
@@ -420,13 +391,11 @@ export default class GameScene extends Phaser.Scene {
     const boardOrigW = 1603;
     const boardOrigH = 1073;
 
-    // ===== BOARD (desktop layout) =====
     let boardAreaW: number;
     let boardAreaH: number;
     let boardX: number;
     let boardY: number;
 
-    // Board to hơn char, dịch sang phải nhưng không đè char
     const marginX = width * 0.05;
     const spanW = width - 2 * marginX;
     boardAreaW = spanW * 0.9;
@@ -447,27 +416,37 @@ export default class GameScene extends Phaser.Scene {
         .image(boardX, boardY, "board")
         .setOrigin(0.5)
         .setScale(scaleBoard);
-      // Debug thông tin ảnh board
       const boardFrame = boardImg.texture.getSourceImage();
-      const boardOrigW = boardFrame.width || boardImg.texture.get().width;
-      const boardOrigH = boardFrame.height || boardImg.texture.get().height;
-      console.log('BOARD texture:', boardImg.texture.key, 'goc:', boardOrigW, boardOrigH, 'size:', boardImg.width, boardImg.height, 'displaySize:', boardImg.displayWidth, boardImg.displayHeight, 'scale:', boardImg.scaleX, boardImg.scaleY);
+      const boardOrigW2 = boardFrame.width || boardImg.texture.get().width;
+      const boardOrigH2 = boardFrame.height || boardImg.texture.get().height;
+      console.log(
+        "BOARD texture:",
+        boardImg.texture.key,
+        "goc:",
+        boardOrigW2,
+        boardOrigH2,
+        "size:",
+        boardImg.width,
+        boardImg.height,
+        "displaySize:",
+        boardImg.displayWidth,
+        boardImg.displayHeight,
+        "scale:",
+        boardImg.scaleX,
+        boardImg.scaleY
+      );
     }
 
-    // Căn đều hai cột trong board: số bên trái, hình bên phải
     const colObjX = boardX - boardW * 0.25;
     const colNumX = boardX + boardW * 0.25;
 
     this.numbers = [];
     this.objects = [];
 
-    //const cardScale = 0.85;
     const cardGap = 20 * scaleBoard;
-    // Card gốc: 685x249, scale theo board
     const cardW = 685 * scaleBoard;
     const cardH = 249 * scaleBoard;
     const totalH = 4 * cardH + 3 * cardGap;
-    // Căn giữa board và đẩy xuống thêm một chút để cân hơn giữa mép trên/dưới
     const verticalNudge = boardH * 0.012;
     const baseY = boardY - totalH / 2 + cardH / 2 + verticalNudge;
 
@@ -477,15 +456,30 @@ export default class GameScene extends Phaser.Scene {
     items.forEach((item, i) => {
       const y = baseY + i * (cardH + cardGap);
 
-      let card = this.add
+      const card = this.add
         .image(colObjX, y, "card")
         .setOrigin(0.5)
         .setDisplaySize(cardW, cardH) as ImageWithData;
-      // Debug thông tin card số
+
       const cardFrame = card.texture.getSourceImage();
       const cardOrigW = cardFrame.width || card.texture.get().width;
       const cardOrigH = cardFrame.height || card.texture.get().height;
-      console.log('CARD texture:', card.texture.key, 'goc:', cardOrigW, cardOrigH, 'size:', card.width, card.height, 'displaySize:', card.displayWidth, card.displayHeight, 'scale:', card.scaleX, card.scaleY);
+      console.log(
+        "CARD texture:",
+        card.texture.key,
+        "goc:",
+        cardOrigW,
+        cardOrigH,
+        "size:",
+        card.width,
+        card.height,
+        "displaySize:",
+        card.displayWidth,
+        card.displayHeight,
+        "scale:",
+        card.scaleX,
+        card.scaleY
+      );
 
       const hoverTint = 0xfff9c4;
       const activeTint = 0xffe082;
@@ -508,7 +502,6 @@ export default class GameScene extends Phaser.Scene {
         }
       });
 
-      // Number text
       this.add
         .text(colObjX, y, String(item.number), {
           fontFamily: "Fredoka",
@@ -517,8 +510,8 @@ export default class GameScene extends Phaser.Scene {
           fontStyle: "900",
           stroke: "#fff",
           strokeThickness: Math.round(cardH * 0.08),
-            resolution: 2, // giữ độ nét vừa phải, tránh vỡ
-          align: "center"
+          resolution: 2,
+          align: "center",
         })
         .setOrigin(0.5, 0.5);
 
@@ -539,15 +532,30 @@ export default class GameScene extends Phaser.Scene {
     shuffled.forEach((item, i) => {
       const y = baseY + i * (cardH + cardGap);
 
-      let card = this.add
+      const card = this.add
         .image(colNumX, y, "card2")
         .setOrigin(0.5)
         .setDisplaySize(cardW, cardH) as ImageWithData;
-      // Debug thông tin card hình
+
       const card2Frame = card.texture.getSourceImage();
       const card2OrigW = card2Frame.width || card.texture.get().width;
       const card2OrigH = card2Frame.height || card.texture.get().height;
-      console.log('CARD2 texture:', card.texture.key, 'goc:', card2OrigW, card2OrigH, 'size:', card.width, card.height, 'displaySize:', card.displayWidth, card.displayHeight, 'scale:', card.scaleX, card.scaleY);
+      console.log(
+        "CARD2 texture:",
+        card.texture.key,
+        "goc:",
+        card2OrigW,
+        card2OrigH,
+        "size:",
+        card.width,
+        card.height,
+        "displaySize:",
+        card.displayWidth,
+        card.displayHeight,
+        "scale:",
+        card.scaleX,
+        card.scaleY
+      );
 
       const dropHoverTint = 0xc8e6ff;
 
@@ -563,29 +571,31 @@ export default class GameScene extends Phaser.Scene {
         card.clearTint();
       });
 
-      // ICONS
       if (this.textures.exists(item.asset)) {
         const tmp = this.add.image(0, 0, item.asset);
         const aW = tmp.width;
         const aH = tmp.height;
-        // Debug thông tin icon gốc
         const iconFrame = tmp.texture.getSourceImage();
         const iconOrigW = iconFrame.width || tmp.texture.get().width;
         const iconOrigH = iconFrame.height || tmp.texture.get().height;
-        console.log('ICON texture:', tmp.texture.key, 'goc:', iconOrigW, iconOrigH, 'size:', aW, aH);
+        console.log(
+          "ICON texture:",
+          tmp.texture.key,
+          "goc:",
+          iconOrigW,
+          iconOrigH,
+          "size:",
+          aW,
+          aH
+        );
         tmp.destroy();
 
         const count = item.number;
-        const gapX = -10;// khoảng cách âm để các icon gần nhau hơn
+        const gapX = -10;
 
-        // Icon gốc 108x162:
-        // - 1 icon: cho chiếm ~98% chiều cao thẻ
-        // - Nhiều icon: ~95% chiều cao thẻ để còn khoảng trống
         const maxIconHeight = cardH * (count === 1 ? 0.98 : 0.95);
-        let iconScale = maxIconHeight / aH; // < 1, downscale một lần duy nhất
+        let iconScale = maxIconHeight / aH;
 
-        // Với nhiều icon trên một thẻ, nếu tổng chiều ngang vượt quá 90% cardW
-        // thì giảm scale đều để vừa khít.
         const iconWidthScaled = aW * iconScale;
         const totalWidth = count * iconWidthScaled + (count - 1) * Math.abs(gapX);
         const maxWidth = cardW * 0.9;
@@ -594,7 +604,6 @@ export default class GameScene extends Phaser.Scene {
           iconScale *= shrink;
         }
 
-        // Làm tròn scale để tránh giá trị lẻ gây rung/mờ nhẹ
         iconScale = Math.round(iconScale * 1000) / 1000;
 
         console.log("ICON scale calc:", {
@@ -610,11 +619,10 @@ export default class GameScene extends Phaser.Scene {
           maxWidth,
           iconScale,
         });
+
         const stepX = aW * iconScale + gapX;
         const groupWidth = aW * iconScale + (count - 1) * stepX;
 
-        //const total = count * aW * iconScale;
-        // Căn giữa icon trong card
         const startX = colNumX - groupWidth / 2 + (aW * iconScale) / 2;
 
         for (let k = 0; k < count; k++) {
@@ -622,12 +630,19 @@ export default class GameScene extends Phaser.Scene {
             .image(startX + k * stepX, y, item.asset)
             .setOrigin(0.5, 0.5)
             .setScale(iconScale);
-          // Debug thông tin icon khi render
-          console.log('ICON render:', iconImg.texture.key, 'displaySize:', iconImg.displayWidth, iconImg.displayHeight, 'scale:', iconImg.scaleX, iconImg.scaleY);
+          console.log(
+            "ICON render:",
+            iconImg.texture.key,
+            "displaySize:",
+            iconImg.displayWidth,
+            iconImg.displayHeight,
+            "scale:",
+            iconImg.scaleX,
+            iconImg.scaleY
+          );
         }
       }
 
-      // Label
       this.add
         .text(colNumX, y + cardH / 2 - 32 * scaleBG, item.label || "", {
           fontFamily: "Fredoka",
@@ -641,8 +656,8 @@ export default class GameScene extends Phaser.Scene {
             color: "#000",
             blur: 4,
           },
-            resolution: 2,
-          align: "center"
+          resolution: 2,
+          align: "center",
         })
         .setOrigin(0.5, 0.5);
 
@@ -656,56 +671,6 @@ export default class GameScene extends Phaser.Scene {
 
       this.objects.push(card);
     });
-
-    // ===== NÚT REPLAY & NEXT (neo góc trên) =====
-    // Kích thước nút ~50% size gốc 152x152
-    const baseBtnSize = 152 * 0.5;
-    const btnScaleFactor = Math.min(1, height / 720);
-    const replayBtnSize = Math.round(baseBtnSize * btnScaleFactor);
-    const nextBtnSize = Math.round(baseBtnSize * btnScaleFactor);
-    const uiPad = 20 * scaleBG;
-    const btnY = cam.worldView.y + uiPad;
-
-    this.replayBtn = this.createButton(
-      cam.worldView.x + uiPad,
-      btnY,
-      "",
-      "replay_svg",
-      null,
-      () => {
-        this.scene.restart({ level: this.level });
-      },
-      replayBtnSize
-    );
-    if (this.replayBtn instanceof Phaser.GameObjects.Image) {
-      this.replayBtn.setOrigin(0, 0);
-      this.replayBtn.setDepth(100);
-    }
-
-    this.nextBtn = this.createButton(
-      cam.worldView.x + cam.width - uiPad,
-      btnY,
-      "",
-      "next_svg",
-      null,
-      () => {
-        if (!this.isLevelComplete()) {
-          this.sound.play("voice_need_finish");
-          return;
-        }
-        const nextIndex = this.level + 1;
-        if (nextIndex >= this.levels.length) {
-          this.scene.start("EndGameScene");
-        } else {
-          this.scene.restart({ level: nextIndex });
-        }
-      },
-      nextBtnSize
-    );
-    if (this.nextBtn instanceof Phaser.GameObjects.Image) {
-      this.nextBtn.setOrigin(1, 0);
-      this.nextBtn.setDepth(100);
-    }
 
     // ===== HAND HINT – CHỈ LEVEL ĐẦU =====
     if (this.level === 0) {
@@ -733,7 +698,6 @@ export default class GameScene extends Phaser.Scene {
     this.dragStartIdx = null;
     this.matches = Array(4).fill(false);
 
-    // pointerdown trên từng numCard
     this.numbers.forEach((numCard, idx) => {
       numCard.on("pointerdown", () => {
         if (this.matches[idx]) return;
@@ -764,7 +728,6 @@ export default class GameScene extends Phaser.Scene {
       });
     });
 
-    // pointermove
     this.input.on("pointermove", (p: Phaser.Input.Pointer) => {
       if (!this.isDragging || this.dragStartIdx === null || !this.dragLine) return;
 
@@ -784,7 +747,6 @@ export default class GameScene extends Phaser.Scene {
       this.dragLine.rotation = seg.angle;
     });
 
-    // pointerup
     this.input.on("pointerup", (p: Phaser.Input.Pointer) => {
       if (!this.isDragging || this.dragStartIdx === null) return;
 
@@ -811,11 +773,9 @@ export default class GameScene extends Phaser.Scene {
 
           this.sound.play("sfx_correct");
 
-          // Clear tint
           startCard.clearTint();
           objCard.clearTint();
 
-          // Đổi sang thẻ vàng
           startCard
             .setTexture("card_yellow")
             .setDisplaySize(
@@ -830,7 +790,6 @@ export default class GameScene extends Phaser.Scene {
               objCard.customData!.cardH
             );
 
-          // Cố định line
           if (this.dragLine) {
             const dyC2 = objCard.y - startCard.y;
             let sStart = 0,
@@ -927,7 +886,7 @@ export default class GameScene extends Phaser.Scene {
         ease: "Sine.inOut",
       });
 
-      break; // chỉ 1 cặp đầu
+      break;
     }
   }
 
