@@ -45,17 +45,25 @@ export default class OverlayScene extends Phaser.Scene {
     const BTN_SCALE = uiScale * 1.7;        // nút bắt đầu to, dễ bấm
     const BTN_SCALE_HOVER = BTN_SCALE * 1.08;
 
-    // ========== CHARACTER – RANDOM 2 SPRITES ==========
+        // ========== CHARACTER – RANDOM 2 SPRITES ==========
     const charKeys = ["intro_char_1", "intro_char_2"];
     const chosenChar = Phaser.Utils.Array.GetRandom(charKeys);
     console.log("🎭 Chosen character:", chosenChar);
 
+    // Offset riêng cho từng nhân vật (tùy bạn tinh chỉnh)
+    const charOffsets: Record<string, { dx: number; dy: number }> = {
+      intro_char_1: { dx: 0, dy: 0 },
+      intro_char_2: { dx: width * 0.035, dy: 0 }, // lệch nhẹ sang trái 1% màn
+    };
+    const offset = charOffsets[chosenChar] || { dx: 0, dy: 0 };
+
     this.add
-      .image(width * 0.5, height * 0.93, chosenChar)
+      .image(width * 0.5 + offset.dx, height * 0.93 + offset.dy, chosenChar)
       .setOrigin(0.5, 1)
-      .setScale(CHAR_SCALE)
-      .setDepth(1)
+      .setScale(uiScale * 1.2)
+      .setDepth(-998)
       .setScrollFactor(0);
+
 
     // ========== TITLE TÁCH RIÊNG ==========
     const title = this.add
