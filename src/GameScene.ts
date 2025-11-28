@@ -354,37 +354,59 @@ export default class GameScene extends Phaser.Scene {
     scaleChar = baseCharScale * 0.65;
     charX = width * 0.11;
 
-    if (this.textures.exists(level.character)) {
-      const charImg = this.add
-        .image(charX, charY, level.character)
-        .setOrigin(0.5, 1)
-        .setScale(scaleChar);
-      const charFrame = charImg.texture.getSourceImage();
-      const charOrigW = charFrame.width || charImg.texture.get().width;
-      const charOrigH = charFrame.height || charImg.texture.get().height;
-      console.log(
-        "CHAR texture:",
-        charImg.texture.key,
-        "goc:",
-        charOrigW,
-        charOrigH,
-        "size:",
-        charImg.width,
-        charImg.height,
-        "displaySize:",
-        charImg.displayWidth,
-        charImg.displayHeight,
-        "scale:",
-        charImg.scaleX,
-        charImg.scaleY
-      );
-    } else {
-      this.add
-        .text(charX, charY, "😊", {
-          fontSize: `${Math.round(120 * scaleChar)}px`,
-        })
-        .setOrigin(0.5, 1);
-    }
+        if (this.textures.exists(level.character)) {
+          const charImg = this.add
+            .image(charX, charY, level.character)
+            .setOrigin(0.5, 1)
+            .setScale(scaleChar);
+
+          // Animation: nhún + lắc nhẹ
+          this.tweens.add({
+            targets: charImg,
+            y: charY - height * 0.02,
+            duration: 900,
+            yoyo: true,
+            repeat: -1,
+            ease: "Sine.inOut",
+          });
+
+          this.tweens.add({
+            targets: charImg,
+            angle: { from: -2, to: 2 },
+            duration: 900,
+            yoyo: true,
+            repeat: -1,
+            ease: "Sine.inOut",
+          });
+
+          // Debug thông tin ảnh nhân vật (tuỳ bạn giữ hay bỏ)
+          const charFrame = charImg.texture.getSourceImage();
+          const charOrigW = charFrame.width || charImg.texture.get().width;
+          const charOrigH = charFrame.height || charImg.texture.get().height;
+          console.log(
+            "CHAR texture:",
+            charImg.texture.key,
+            "goc:",
+            charOrigW,
+            charOrigH,
+            "size:",
+            charImg.width,
+            charImg.height,
+            "displaySize:",
+            charImg.displayWidth,
+            charImg.displayHeight,
+            "scale:",
+            charImg.scaleX,
+            charImg.scaleY
+          );
+        } else {
+          this.add
+            .text(charX, charY, "😊", {
+              fontSize: `${Math.round(120 * scaleChar)}px`,
+            })
+            .setOrigin(0.5, 1);
+        }
+
 
     // ===== BOARD =====
     const items = level.items;
@@ -854,7 +876,7 @@ export default class GameScene extends Phaser.Scene {
       const startPos = this.getHolePos(numCard, "right", 0);
       const rawEndPos = this.getHolePos(objCard, "left", 0);
 
-      const extraIntoObject = objCard.displayWidth * 0.28;
+      const extraIntoObject = objCard.displayWidth * 0.35;
 
       const endPos = {
         x: rawEndPos.x + extraIntoObject,

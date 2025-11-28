@@ -16,10 +16,6 @@ export function preloadIntroAssets(scene: Phaser.Scene): void {
   scene.load.image("intro_bg_1", "assets/intro/bge1.webp");
   scene.load.image("intro_bg_2", "assets/intro/bge2.webp");
   scene.load.image("intro_bg_3", "assets/intro/bge3.webp");
-  scene.load.image("intro_bg_4", "assets/intro/bge4.webp");
-  scene.load.image("intro_bg_5", "assets/intro/bge5.webp");
-  scene.load.image("intro_bg_6", "assets/intro/bge6.webp");
-  scene.load.image("intro_bg_7", "assets/intro/bge7.webp");
 
   // CHARACTER & TITLE intro – rất quan trọng
   scene.load.image("intro_char_1", "assets/intro/char_intro1.webp");

@@ -149,20 +149,19 @@ function ensureRotateOverlay() {
   box.style.boxShadow = "0 8px 24px rgba(0,0,0,0.25)";
 
   const title = document.createElement("div");
-  title.textContent = "Hãy xoay ngang màn hình nhé 🌈";
+  title.textContent = "Bé Hãy Xoay Ngang Màn Hình Để Chơi Nhé 🌈";
   title.style.fontSize = "18px";
   title.style.fontWeight = "700";
   title.style.marginBottom = "8px";
   title.style.color = "#222";
 
-  const desc = document.createElement("div");
-  desc.textContent = "Để chơi game rõ và dễ thao tác hơn, vui lòng xoay ngang thiết bị.";
-  desc.style.fontSize = "14px";
-  desc.style.lineHeight = "1.4";
-  desc.style.color = "#444";
-
+  // const desc = document.createElement("div");
+  // //desc.textContent = "Để chơi game rõ và dễ thao tác hơn, vui lòng xoay ngang thiết bị.";
+  // desc.style.fontSize = "14px";
+  // desc.style.lineHeight = "1.4";
+  // desc.style.color = "#444";
   box.appendChild(title);
-  box.appendChild(desc);
+  // box.appendChild(desc);
   rotateOverlay.appendChild(box);
 
   document.body.appendChild(rotateOverlay);
